@@ -3,30 +3,11 @@ Name : Demineur
 Author : Eliott, Chakib
 """
 
-"""
-vide = 0
-inconnu = .
-mine = 1
-drapeau = @
-decouvert = int de mine autour
-découvert = #
-"""
-
-"""
-Libérer les cases proches avant de générer les mines
-Afficher les mines proches
-Bombe = Perdu
-Signe drapeau
-(Faire 3 difficulter)
-Timeur
-Quand il reste juste les mines gagner
-"""
-
 from random import randint
 
 class Demineur:
     
-    def __init__(self,coord:tuple):
+    def __init__(self,coord:tuple,nb_mines:int):
         self.grille_mine = [
                             [0,0,0,0,0,0,0,0,0],
                             [0,0,0,0,0,0,0,0,0],
@@ -61,12 +42,14 @@ class Demineur:
                         ['.','.','.','.','.','.','.','.','.'],
                         ] # Grille d'affichage, celle que l'utilisateur voit
         self.coord = coord # Tuple
+        self.nb_mines = nb_mines # Int
+        self.nb_drapeau = nb_mines # Int
     
     def afficher(self):
         """
         Affiche la grille.
         
-        PARAS :
+        ARGS :
             self
         """
         for ligne in self.grille_aff:
@@ -78,7 +61,7 @@ class Demineur:
         """
         Affiche la grille des mines.
 
-        PARAS :
+        ARGS :
             self
         """
         print("-"*25)
@@ -99,11 +82,11 @@ class Demineur:
         Créer un dictionnaire des voisins (haut,bas,gauche,droite et les diagonales)
         d'une case en informant si ils contiennent une mineou non.
         
-        PARAMS :
+        ARGS :
             self
-            case : tuple (coordonnées de la case)
+            case (tuple) : coordonnées de la case
         RETURNS :
-            voisin : dict (Dictionnaire des voisins et de si ils ont une mine ou non)
+            voisin (dict) : Dictionnaire des voisins et de si ils ont une mine ou non
         """
         voisin = {}
         if case[0] != 0:
@@ -124,18 +107,17 @@ class Demineur:
             voisin[(case[0]-1,case[1]+1)] = self.grille_mine[case[0]-1][case[1]+1]#Diagonale haut droite
         return voisin
     
-    def generation_mine(self,mines:int):
+    def generation_mine(self):
         """
         Génère la grille des mines.
 
-        PARAMS :
+        ARGS :
             self
-            mines : int (nombre de mines voulu)
         """
-        assert mines < 81*0.15, "Pas plus de 15% des cases"
-        assert mines>0, "Que des entiers positifs"
+        assert self.nb_mines < 81*0.15, "Pas plus de 15% des cases"
+        assert self.nb_mines>0, "Que des entiers positifs"
         cpt = 0
-        while cpt < mines:
+        while cpt < self.nb_mines:
             ligne = randint(0,8)
             mine = randint(0,8)
             if self.grille_mine[ligne][mine] == 0 and self.grille_aff[ligne][mine] != '#':
@@ -146,7 +128,7 @@ class Demineur:
         """
         Compte le nombre de mine à proximité de chaque case
 
-        PARAMS :
+        ARGS :
             self
         """
         for i in range(len(self.grille_nb)):
@@ -159,7 +141,7 @@ class Demineur:
         """
         Découvre la base du jeu pour jouer.
 
-        PARAMS :
+        ARGS :
             self
         RETURNS :
             grille (à partir de la fonction afficher)
@@ -177,9 +159,9 @@ class Demineur:
         """
         Découvre les parties vides.
 
-        PARAMS :
+        ARGS :
             self
-            voisin : dict
+            voisin (dict)
         """
         for elt in voisin.keys():
             if self.grille_aff[elt[0]][elt[1]] == '.':
@@ -188,12 +170,40 @@ class Demineur:
                     self.decouvrir(self.voisin(elt))
                 else:
                     self.grille_aff[elt[0]][elt[1]] = self.grille_nb[elt[0]][elt[1]]
+    
+    def add_drapeau(self,coord:tuple):
+        """
+        Place un drapeau à l'endroit indiqué.
+
+        ARGS :
+            self
+            coord (tuple) : coordonné du drapeau
+        """
+        assert self.grille_aff[coord[0]][coord[1]] != "#", "La case est déjà découverte !"
+        assert self.grille_aff[coord[0]][coord[1]] not in [1,2,3,4,5,6,7,8], "La case est déjà découverte !"
+        assert self.grille_aff[coord[0]][coord[1]] != "@", "La case a déjà un drapeau !"
+        self.grille_aff[coord[0]][coord[1]] = "@"
+        self.nb_drapeau -= 1
+
+    def remove_drapeau(self,coord:tuple):
+        """
+        Retire un drapeau à l'endroit indiqué.
+
+        ARGS :
+            self
+            coord (tuple) : coordonné du drapeau
+        """
+        assert self.grille_aff[coord[0]][coord[1]] == "@", "La case n'est pas un drapeau !"
+        self.grille_aff[coord[0]][coord[1]] = "."
+        self.nb_drapeau += 1
+
 
 print("Bienvenue dans le Demineur !")
 depart = input("Veuillez entrer les coordonnées du point de départ (x y) : ")
 coord = (int(depart[0])-1,int(depart[2])-1)
-j = Demineur(coord)
-j.generation_mine(int(input("Combien de mine voulez vous ? (il faut au moins 1 mine et moins de 15% du plateau soit 81 cases) ")))
+mines = int(input("Combien de mine voulez vous ? (il faut au moins 1 mine et moins de 15% du plateau soit 81 cases) "))
+j = Demineur(coord,mines)
+j.generation_mine()
 j.depart()
-print()
-j.admin_afficher()
+# print()
+# j.admin_afficher()
