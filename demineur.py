@@ -147,6 +147,8 @@ class Demineur:
         RETURNS :
             grille (à partir de la fonction afficher)
         """
+        self.grille_aff[self.coord[0]][self.coord[1]] = '#'
+        self.generation_mine()
         self.count_mine()
         if self.grille_nb[self.coord[0]][self.coord[1]] == 0:
             self.grille_aff[self.coord[0]][self.coord[1]] = '#'
@@ -243,7 +245,6 @@ class Demineur:
 # coord = (int(depart[0])-1,int(depart[2])-1)
 # mines = int(input("Combien de mine voulez vous ? (il faut au moins 1 mine et moins de 15% du plateau soit 81 cases) "))
 # j = Demineur(coord,mines)
-# j.generation_mine()
 # j.depart()
 # while j.not_fini:
 #     action = input("Quelle case voulez-vous découvrir ? (d suivit des coordonnées pour mettre un drapeau) ")
