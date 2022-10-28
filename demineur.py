@@ -44,6 +44,7 @@ class Demineur:
         self.coord = coord # Tuple
         self.nb_mines = nb_mines # Int
         self.nb_drapeau = nb_mines # Int
+        self.not_fini = True # Bool
     
     def afficher(self):
         """
@@ -182,6 +183,7 @@ class Demineur:
         assert self.grille_aff[coord[0]][coord[1]] != "#", "La case est déjà découverte !"
         assert self.grille_aff[coord[0]][coord[1]] not in [1,2,3,4,5,6,7,8], "La case est déjà découverte !"
         assert self.grille_aff[coord[0]][coord[1]] != "@", "La case a déjà un drapeau !"
+        assert self.nb_drapeau > 0, "Vous n'avez plus de drapeau disponible !"
         self.grille_aff[coord[0]][coord[1]] = "@"
         self.nb_drapeau -= 1
 
@@ -197,6 +199,44 @@ class Demineur:
         self.grille_aff[coord[0]][coord[1]] = "."
         self.nb_drapeau += 1
 
+    def jouer(self,coord:tuple):
+        """
+        Découvre ou non les cases du joueur.
+
+        ARGS :
+            self
+            coord (tuple) : coordonné de l'action
+        """
+        if self.grille_mine[coord[0]][coord[1]] == 1:
+            self.grille_aff[coord[0]][coord[1]] = "!"
+            self.not_fini = False
+        elif self.grille_nb[coord[0]][coord[1]] == 0:
+            self.grille_aff[coord[0]][coord[1]] = '#'
+            voisin = self.voisin(coord)
+            self.decouvrir(voisin)
+        else:
+            self.grille_aff[coord[0]][coord[1]] = self.grille_nb[coord[0]][coord[1]]
+        return self.afficher()
+    
+    def verif_gagne(self):
+        """
+        Vérifie si la partie est gagné.
+
+        ARGS :
+            self
+
+        RETURN :
+            gagne (bool) : Booléen de si le joueur a gagné
+        """
+        gagne = True
+        for i in range(len(self.grille_aff)):
+            for j in range(len(self.grille_aff)):
+                if self.grille_mine[i][j] == 0 and self.grille_aff[i][j] == ".":
+                    gagne = False
+        if gagne:
+            self.not_fini = False
+        return gagne
+
 
 print("Bienvenue dans le Demineur !")
 depart = input("Veuillez entrer les coordonnées du point de départ (x y) : ")
@@ -205,5 +245,24 @@ mines = int(input("Combien de mine voulez vous ? (il faut au moins 1 mine et moi
 j = Demineur(coord,mines)
 j.generation_mine()
 j.depart()
+while j.not_fini:
+    action = input("Quelle case voulez-vous découvrir ? (d suivit des coordonnées pour mettre un drapeau) ")
+    if action[0] == "d":
+        if j.grille_aff[int(action[2])-1][int(action[4])-1] != "@":
+            j.add_drapeau((int(action[2])-1,int(action[4])-1))
+        else:
+            j.remove_drapeau((int(action[2])-1,int(action[4])-1))             
+        j.afficher()
+    elif j.grille_aff[int(action[0])-1][int(action[2])-1] in [1,2,3,4,5,6,7,8,"#"]:
+        print("La case est déjà découverte !")
+    elif j.grille_aff[int(action[0])-1][int(action[2])-1] == "@":
+        print("La case est déjà un drapeau !")
+    else:
+        j.jouer((int(action[0])-1,int(action[2])-1))
+        gagne = j.verif_gagne()
+if gagne:
+    print("Vous avez gagnez !")
+else:
+    print("Vous avez perdu !")
 # print()
 # j.admin_afficher()
